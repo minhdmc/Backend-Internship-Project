@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from rest_framework.authtoken import views as token_views
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -23,6 +24,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('employee_api.urls')),
     path('analytics/', include('employee_analytics.urls')),
+    
+    # Authentication
+    path('api-token-auth/', token_views.obtain_auth_token, name='api_token_auth'),
     
     # Swagger URLs
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
