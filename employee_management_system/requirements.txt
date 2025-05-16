@@ -1,0 +1,7 @@
+Django>=3.2,<4.0
+djangorestframework>=3.12,<4.0
+pandas>=1.1,<2.0
+matplotlib>=3.3,<4.0
+numpy>=1.19,<2.0
+faker>=8.0,<9.0
+django-cors-headers>=3.7,<4.0

@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Employee Analytics Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Employee Analytics Dashboard</h1>
+    
+    <div class="row">
+        <!-- Department Distribution -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Employees by Department</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="departmentChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Overview -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Attendance Overview</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="attendanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Distribution -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Performance Rating Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Department Chart
+    const departmentCtx = document.getElementById('departmentChart').getContext('2d');
+    new Chart(departmentCtx, {
+        type: 'pie',
+        data: {
+            labels: {{ department_stats|safe }}.map(item => item.name),
+            datasets: [{
+                data: {{ department_stats|safe }}.map(item => item.employee_count),
+                backgroundColor: [
+                    '#FF6384',
+                    '#36A2EB',
+                    '#FFCE56',
+                    '#4BC0C0',
+                    '#9966FF',
+                    '#FF9F40',
+                    '#8AC249',
+                    '#EA526F'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right'
+                }
+            }
+        }
+    });
+
+    // Attendance Chart
+    const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+    new Chart(attendanceCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ attendance_stats|safe }}.map(item => item.status),
+            datasets: [{
+                label: 'Number of Records',
+                data: {{ attendance_stats|safe }}.map(item => item.count),
+                backgroundColor: [
+                    '#4BC0C0',
+                    '#FF6384',
+                    '#FFCE56'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Performance Chart
+    const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+    new Chart(performanceCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ performance_stats|safe }}.map(item => `Rating ${item.rating}`),
+            datasets: [{
+                label: 'Number of Reviews',
+                data: {{ performance_stats|safe }}.map(item => item.count),
+                backgroundColor: '#36A2EB'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %} 
