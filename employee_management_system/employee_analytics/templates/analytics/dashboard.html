@@ -1,23 +1,133 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employee Analytics Dashboard</title>
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    <script src="{% static 'js/charts.js' %}"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Employee Analytics Dashboard</h1>
-        <div id="charts">
-            <!-- Placeholder for charts -->
+    <div class="container py-5">
+        <h1 class="text-center mb-5">Employee Analytics Dashboard</h1>
+        
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Employees per Department</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="departmentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">Attendance Overview</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="attendanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">Performance Rating Distribution</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
     <script>
-        // JavaScript code to fetch data and render charts
         document.addEventListener('DOMContentLoaded', function() {
-            // Fetch data from the API and render charts
+            // Department Chart
+            const departmentCtx = document.getElementById('departmentChart').getContext('2d');
+            const departmentData = {{ department_stats|safe }};
+            
+            new Chart(departmentCtx, {
+                type: 'pie',
+                data: {
+                    labels: departmentData.map(item => item.name),
+                    datasets: [{
+                        data: departmentData.map(item => item.employee_count),
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+                            '#9966FF', '#FF9F40', '#8AC249', '#EA526F'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'right' },
+                        title: { display: true, text: 'Employee Distribution' }
+                    }
+                }
+            });
+            
+            // Attendance Chart
+            const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+            const attendanceData = {{ attendance_stats|safe }};
+            
+            new Chart(attendanceCtx, {
+                type: 'bar',
+                data: {
+                    labels: attendanceData.map(item => item.status),
+                    datasets: [{
+                        label: 'Attendance Count',
+                        data: attendanceData.map(item => item.count),
+                        backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: {
+                        title: { display: true, text: 'Attendance Status Distribution' }
+                    }
+                }
+            });
+            
+            // Performance Chart
+            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+            const performanceData = {{ performance_stats|safe }};
+            
+            new Chart(performanceCtx, {
+                type: 'line',
+                data: {
+                    labels: performanceData.map(item => `Rating ${item.rating}`),
+                    datasets: [{
+                        label: 'Number of Reviews',
+                        data: performanceData.map(item => item.count),
+                        borderColor: '#4BC0C0',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: {
+                        title: { display: true, text: 'Performance Rating Distribution' }
+                    }
+                }
+            });
         });
     </script>
 </body>

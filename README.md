@@ -9,30 +9,32 @@ A Django-based Employee Management System with RESTful APIs and analytics capabi
 - Attendance tracking
 - Performance reviews
 - RESTful APIs with Swagger documentation
-- Data visualization (optional)
-- Authentication and authorization
+- Token-based authentication
+- Data visualization 
+- CORS support
+- Database seeding with fake data
 
 ## Tech Stack
 
-- Django 4.2
-- Django REST Framework
-- PostgreSQL (configurable)
+- Django 5.2
+- Django REST Framework 3.16
+- SQLite (default) or PostgreSQL (configurable)
 - Swagger/OpenAPI documentation
 - Chart.js for visualizations
+- Faker for generating test data
 
 ## Prerequisites
 
 - Python 3.8+
 - pip (Python package manager)
 - Virtual environment (recommended)
-- PostgreSQL (optional, SQLite is used by default)
 
 ## Installation
 
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd employee_management_system
+cd Backend-Internship-Project
 ```
 
 2. Create and activate a virtual environment:
@@ -48,40 +50,44 @@ source venv/bin/activate
 
 3. Install dependencies:
 ```bash
-pip install -r requirements.txt
+pip install django djangorestframework drf-yasg django-filter django-cors-headers
 ```
 
-4. Set up environment variables:
+4. Environment variables (development setup uses sensible defaults):
 ```bash
-# Create a .env file in the project root
-cp .env.example .env
-
-# Edit .env with your configuration
+# Create a .env file in the project root (optional)
 # Example .env contents:
 DEBUG=True
 SECRET_KEY=your-secret-key-here
-DATABASE_URL=postgres://user:password@localhost:5432/employee_db
 ALLOWED_HOSTS=localhost,127.0.0.1
+CORS_ALLOWED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000,http://localhost:3000
+CORS_ALLOW_ALL_ORIGINS=False
 ```
 
-5. Run migrations:
+5. Change to the project directory:
+```bash
+cd employee_management_system
+```
+
+6. Run migrations:
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-6. Create a superuser:
+7. Create a superuser:
 ```bash
 python manage.py createsuperuser
 # Follow the prompts to create an admin user
 ```
 
-7. Seed the database with sample data:
+8. Seed the database with test data (optional):
 ```bash
+pip install faker
 python manage.py seed_data
 ```
 
-8. Run the development server:
+9. Run the development server:
 ```bash
 python manage.py runserver
 ```
@@ -91,20 +97,23 @@ python manage.py runserver
 Once the server is running, you can access:
 
 1. Admin Interface:
-   - URL: http://localhost:8000/admin/
+   - URL: http://127.0.0.1:8000/admin/
    - Login with your superuser credentials
    - Manage all data through the Django admin interface
 
 2. API Documentation:
-   - Swagger UI: http://localhost:8000/swagger/
-   - ReDoc: http://localhost:8000/redoc/
+   - Swagger UI: http://127.0.0.1:8000/swagger/
+   - ReDoc: http://127.0.0.1:8000/redoc/
    - Interactive API documentation and testing
 
 3. Analytics Dashboard:
-   - URL: http://localhost:8000/analytics/dashboard/
+   - URL: http://127.0.0.1:8000/analytics/dashboard/
    - View employee statistics and charts
 
 ## API Endpoints
+
+### Authentication
+- `POST /api-token-auth/` - Obtain authentication token
 
 ### Department Management
 - `GET /api/departments/` - List all departments
@@ -139,18 +148,18 @@ Once the server is running, you can access:
 ### Authentication
 ```bash
 # Get authentication token
-curl -X POST http://localhost:8000/api/token/ \
+curl -X POST http://127.0.0.1:8000/api-token-auth/ \
      -H "Content-Type: application/json" \
      -d '{"username": "your_username", "password": "your_password"}'
 
 # Use token in subsequent requests
-curl http://localhost:8000/api/employees/ \
+curl http://127.0.0.1:8000/api/employees/ \
      -H "Authorization: Token your_token_here"
 ```
 
 ### Creating an Employee
 ```bash
-curl -X POST http://localhost:8000/api/employees/ \
+curl -X POST http://127.0.0.1:8000/api/employees/ \
      -H "Content-Type: application/json" \
      -H "Authorization: Token your_token_here" \
      -d '{
@@ -167,7 +176,7 @@ curl -X POST http://localhost:8000/api/employees/ \
 
 ### Recording Attendance
 ```bash
-curl -X POST http://localhost:8000/api/attendance/ \
+curl -X POST http://127.0.0.1:8000/api/attendance/ \
      -H "Content-Type: application/json" \
      -H "Authorization: Token your_token_here" \
      -d '{
@@ -204,6 +213,13 @@ curl -X POST http://localhost:8000/api/attendance/ \
 - Track improvement areas
 - Generate performance reports
 
+## Security Enhancements
+
+- Environment variable configuration for sensitive settings
+- Token-based authentication support
+- Flexible CORS configuration
+- Django's built-in password validation
+
 ## Development
 
 ### Running Tests
@@ -237,21 +253,24 @@ python manage.py flush
 
 ### Common Issues
 
-1. Database Connection Issues
-   - Check your database settings in settings.py
-   - Ensure PostgreSQL is running (if using PostgreSQL)
-   - Verify database credentials in .env file
+1. Missing Dependencies
+   - Ensure all required packages are installed with `pip install django djangorestframework drf-yasg django-filter django-cors-headers`
+   - If using PostgreSQL, install psycopg2 with `pip install psycopg2-binary`
 
-2. Migration Errors
+2. Authentication Issues
+   - Ensure you're using the correct token format in requests: `Authorization: Token your_token_here`
+   - Obtain a new token if your current one has expired
+   - Check that the user has the appropriate permissions
+
+3. CORS Issues
+   - Check CORS settings if accessing APIs from different origins
+   - For development, consider setting `CORS_ALLOW_ALL_ORIGINS=True` in your .env file
+
+4. Migration Errors
    - Delete all migration files (except __init__.py)
    - Delete the database
    - Run `python manage.py makemigrations`
    - Run `python manage.py migrate`
-
-3. Static Files Not Loading
-   - Run `python manage.py collectstatic`
-   - Check STATIC_ROOT and STATIC_URL settings
-   - Verify static files are in the correct directory
 
 ## Contributing
 
@@ -263,4 +282,39 @@ python manage.py flush
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Docker Setup
+
+The project includes Docker configuration for easy setup with PostgreSQL:
+
+1. Make sure Docker and Docker Compose are installed on your system
+2. Build and start the containers:
+```bash
+docker-compose up -d
+```
+3. The application will be available at http://localhost:8000
+4. To create a superuser in the Docker container:
+```bash
+docker-compose exec web python employee_management_system/manage.py createsuperuser
+```
+5. To seed data in the Docker container:
+```bash
+docker-compose exec web python employee_management_system/manage.py seed_data
+```
+
+## PostgreSQL Configuration
+
+To use PostgreSQL instead of SQLite:
+
+1. Ensure PostgreSQL is installed and running on your system
+2. Create a database for the project
+3. Update your .env file with the following variables:
+```
+DB_ENGINE=django.db.backends.postgresql
+DB_NAME=your_database_name
+DB_USER=your_database_user
+DB_PASSWORD=your_database_password
+DB_HOST=localhost
+DB_PORT=5432
+``` 
